@@ -19,6 +19,10 @@ export interface Transaction {
 }
 
 export interface UserState {
+  phone?: string;
+  name?: string;
+  username?: string;
+  lastLoginDate?: string;
   balance: number;
   tasksEarned: number;
   referralEarned: number;

@@ -6,6 +6,7 @@ import { TasksView } from './views/TasksView';
 import { InviteView } from './views/InviteView';
 import { WithdrawView } from './views/WithdrawView';
 import { ProfileView } from './views/ProfileView';
+import { LoginView } from './views/LoginView';
 import type { Tab, UserState, Task } from './types';
 
 const INITIAL_USER: UserState = {
@@ -41,7 +42,15 @@ export default function App() {
     const saved = localStorage.getItem('tecnoBirrUser');
     if (saved) {
       const parsed = JSON.parse(saved);
-      return { ...INITIAL_USER, ...parsed, transactions: parsed.transactions || INITIAL_USER.transactions };
+      const uniqueTransactions = [];
+      const seenIds = new Set();
+      for (const tx of (parsed.transactions || INITIAL_USER.transactions)) {
+        if (!seenIds.has(tx.id)) {
+          uniqueTransactions.push(tx);
+          seenIds.add(tx.id);
+        }
+      }
+      return { ...INITIAL_USER, ...parsed, transactions: uniqueTransactions };
     }
     return INITIAL_USER;
   });
@@ -65,6 +74,34 @@ export default function App() {
     localStorage.setItem('tecnoBirrTasks', JSON.stringify(tasks));
   }, [tasks]);
 
+  useEffect(() => {
+    if (!userState.phone) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    
+    setUserState(prev => {
+      if (prev.lastLoginDate === today) return prev;
+      
+      return {
+        ...prev,
+        balance: prev.balance + 5.0,
+        lastLoginDate: today,
+        transactions: [
+          {
+            id: `daily-${today}-${crypto.randomUUID()}`,
+            type: 'earning',
+            amount: 5.0,
+            title: 'Daily Login Reward',
+            subtitle: 'Welcome Back Bonus',
+            date: new Date().toISOString(),
+            status: 'success'
+          },
+          ...(prev.transactions || [])
+        ]
+      };
+    });
+  }, [userState.phone]);
+
   const handleCompleteTask = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task || task.completed) return;
@@ -77,7 +114,7 @@ export default function App() {
       tasksEarned: prev.tasksEarned + task.reward,
       transactions: [
         {
-          id: Date.now().toString(),
+          id: crypto.randomUUID(),
           type: 'earning',
           amount: task.reward,
           title: task.title,
@@ -98,7 +135,7 @@ export default function App() {
         pendingOut: prev.pendingOut + amount, // Record it as pending or out for UI
         transactions: [
           {
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
             type: 'withdrawal',
             amount: amount,
             title: `Withdrawal #${Math.floor(1000 + Math.random() * 9000)}`,
@@ -112,6 +149,18 @@ export default function App() {
     }
   };
 
+  const handleLogin = (phone: string) => {
+    setUserState(prev => ({ ...prev, phone }));
+  };
+
+  const handleUpdateProfile = (updates: Partial<UserState>) => {
+    setUserState(prev => ({ ...prev, ...updates }));
+  };
+
+  if (!userState.phone) {
+    return <LoginView onLogin={handleLogin} />;
+  }
+
   return (
     <div className="h-[100dvh] bg-[#050505] text-slate-100 flex justify-center font-sans overflow-hidden">
       <div className="w-full max-w-md bg-[#050505] relative h-full border-x border-white/5 flex flex-col">
@@ -122,7 +171,7 @@ export default function App() {
           {currentTab === 'tasks' && <TasksView tasks={tasks} onCompleteTask={handleCompleteTask} />}
           {currentTab === 'invite' && <InviteView userState={userState} />}
           {currentTab === 'withdraw' && <WithdrawView userState={userState} onWithdraw={handleWithdraw} />}
-          {currentTab === 'profile' && <ProfileView userState={userState} />}
+          {currentTab === 'profile' && <ProfileView userState={userState} onUpdateProfile={handleUpdateProfile} />}
         </main>
 
         <BottomNav currentTab={currentTab} onChangeTab={setCurrentTab} />
