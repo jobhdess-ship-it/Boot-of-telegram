@@ -182,7 +182,7 @@ export function SupportModal({ isOpen, onClose }: ModalProps) {
                   Need help with your account or withdrawals? Our support team is available 24/7.
                 </p>
                 <a 
-                  href="mailto:support@tecnobirr.com"
+                  href="mailto:support@obobirr.com"
                   className="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-xl transition-colors"
                 >
                   Email Support

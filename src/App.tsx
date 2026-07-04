@@ -7,7 +7,6 @@ import { TasksView } from './views/TasksView';
 import { InviteView } from './views/InviteView';
 import { WithdrawView } from './views/WithdrawView';
 import { ProfileView } from './views/ProfileView';
-import { LoginView } from './views/LoginView';
 import { SettingsModal, SupportModal } from './components/Modals';
 import type { Tab, UserState, Task } from './types';
 
@@ -32,10 +31,10 @@ const INITIAL_USER: UserState = {
 };
 
 const INITIAL_TASKS: Task[] = [
-  { id: '1', title: 'Join Tecno Ethiopia Official Channel', reward: 25.0, completed: false, url: 'https://t.me/tecnomobileethiopia' },
-  { id: '2', title: 'Join Tecno Birr Channel', reward: 35.0, completed: false, url: 'https://t.me/tecnomobileethiopia' },
-  { id: '3', title: 'Join Our Sponsor Channel', reward: 50.0, completed: false, url: 'https://t.me/telegram' },
-  { id: '4', title: 'Follow Tecno on Twitter', reward: 20.0, completed: false, url: 'https://twitter.com/tecnomobile' },
+  { id: '1', title: 'Join OBO Ethiopia Official Channel', reward: 5.0, completed: false, url: 'https://t.me/obobir' },
+  { id: '2', title: 'Join OBO Birr Channel', reward: 5.0, completed: false, url: 'https://t.me/obobirr' },
+  { id: '3', title: 'Join Our Sponsor Channel', reward: 5.0, completed: false, url: 'https://t.me/@Bekamiq' },
+  { id: '4', title: 'Follow OBO on Twitter', reward: 5.0, completed: false, url: 'https://twitter.com/obomobile' },
 ];
 
 export default function App() {
@@ -43,7 +42,7 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [userState, setUserState] = useState<UserState>(() => {
-    const saved = localStorage.getItem('tecnoBirrUser');
+    const saved = localStorage.getItem('oboBirrUser');
     if (saved) {
       const parsed = JSON.parse(saved);
       const uniqueTransactions = [];
@@ -59,7 +58,7 @@ export default function App() {
     return INITIAL_USER;
   });
   const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem('tecnoBirrTasks');
+    const saved = localStorage.getItem('oboBirrTasks');
     if (saved) {
       const parsed = JSON.parse(saved);
       return INITIAL_TASKS.map(task => {
@@ -71,16 +70,14 @@ export default function App() {
   });
 
   useEffect(() => {
-    localStorage.setItem('tecnoBirrUser', JSON.stringify(userState));
+    localStorage.setItem('oboBirrUser', JSON.stringify(userState));
   }, [userState]);
 
   useEffect(() => {
-    localStorage.setItem('tecnoBirrTasks', JSON.stringify(tasks));
+    localStorage.setItem('oboBirrTasks', JSON.stringify(tasks));
   }, [tasks]);
 
   useEffect(() => {
-    if (!userState.phone) return;
-
     const today = new Date().toISOString().split('T')[0];
     
     setUserState(prev => {
@@ -104,7 +101,7 @@ export default function App() {
         ]
       };
     });
-  }, [userState.phone]);
+  }, []);
 
   const handleCompleteTask = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
@@ -153,22 +150,14 @@ export default function App() {
     }
   };
 
-  const handleLogin = (phone: string) => {
-    setUserState(prev => ({ ...prev, phone }));
-  };
-
   const handleUpdateProfile = (updates: Partial<UserState>) => {
     setUserState(prev => ({ ...prev, ...updates }));
   };
 
   const handleLogout = () => {
     setUserState(INITIAL_USER);
-    localStorage.removeItem('tecnoBirrUser');
+    localStorage.removeItem('oboBirrUser');
   };
-
-  if (!userState.phone) {
-    return <LoginView onLogin={handleLogin} />;
-  }
 
   return (
     <div className="h-[100dvh] bg-[#050505] text-slate-100 flex justify-center font-sans overflow-hidden">

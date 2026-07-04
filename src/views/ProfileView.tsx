@@ -127,7 +127,7 @@ export function ProfileView({ userState, onUpdateProfile }: ProfileViewProps) {
         </div>
         <div className="flex items-center justify-between p-5 bg-white/[0.02]">
           <span className="text-sm font-medium text-slate-300">Network Tenant</span>
-          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">TECNO-BIRR</span>
+          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">OBO-BIRR</span>
         </div>
       </div>
 

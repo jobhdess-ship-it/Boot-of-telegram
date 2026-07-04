@@ -31,7 +31,7 @@ export function TopBar({ onLogout, onSettings, onSupport }: TopBarProps) {
     <div className="flex items-center justify-between px-4 py-3 bg-[#0A0A0A] border-b border-white/5 sticky top-0 z-50">
       <div className="flex items-center gap-1">
         <div className="flex items-baseline font-bold text-2xl tracking-tight">
-          <span className="text-white">TECNO</span>
+          <span className="text-white">OBO</span>
           <span className="text-emerald-500 italic ml-1">Birr</span>
         </div>
       </div>

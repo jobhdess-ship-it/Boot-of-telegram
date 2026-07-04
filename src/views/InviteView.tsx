@@ -8,7 +8,7 @@ interface InviteViewProps {
 
 export function InviteView({ userState }: InviteViewProps) {
   const [copied, setCopied] = useState(false);
-  const referralLink = "https://t.me/tecnobirr_bot?start=r7733281705";
+  const referralLink = "https://t.me/obobirr_bot?start=r7733281705";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(referralLink);
@@ -17,7 +17,7 @@ export function InviteView({ userState }: InviteViewProps) {
   };
 
   const handleShare = () => {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join Tecno Birr and start earning today!")}`, '_blank');
+    window.open(`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join OBO Birr and start earning today!")}`, '_blank');
   };
 
   return (

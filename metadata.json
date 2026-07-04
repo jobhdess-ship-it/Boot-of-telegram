@@ -1,6 +1,6 @@
 {
-  "name": "Tecno Birr Bot UI",
-  "description": "A Telegram Bot Mini App UI for Tecno Birr earning and withdrawal simulation.",
+  "name": "OBO Birr Bot UI",
+  "description": "A Telegram Bot Mini App UI for OBO Birr earning and withdrawal simulation.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
