@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Smartphone, ArrowRight, ShieldCheck } from 'lucide-react';
+import { motion } from 'motion/react';
 
 interface LoginViewProps {
   onLogin: (phone: string) => void;
@@ -25,7 +26,7 @@ export function LoginView({ onLogin }: LoginViewProps) {
       {/* Background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-sm h-64 bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none"></div>
 
-      <div className="relative z-10 w-full max-w-xs mx-auto flex flex-col">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 w-full max-w-xs mx-auto flex flex-col">
         <div className="mb-10 text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
             <span className="text-3xl font-black text-[#050505]">T</span>
@@ -75,7 +76,7 @@ export function LoginView({ onLogin }: LoginViewProps) {
           <ShieldCheck className="w-4 h-4 text-emerald-500/70" />
           <span>Your data is encrypted and secure</span>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

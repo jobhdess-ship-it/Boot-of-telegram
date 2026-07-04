@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { TopBar } from './components/TopBar';
 import { BottomNav } from './components/BottomNav';
 import { HomeView } from './views/HomeView';
@@ -7,6 +8,7 @@ import { InviteView } from './views/InviteView';
 import { WithdrawView } from './views/WithdrawView';
 import { ProfileView } from './views/ProfileView';
 import { LoginView } from './views/LoginView';
+import { SettingsModal, SupportModal } from './components/Modals';
 import type { Tab, UserState, Task } from './types';
 
 const INITIAL_USER: UserState = {
@@ -38,6 +40,8 @@ const INITIAL_TASKS: Task[] = [
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<Tab>('home');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [userState, setUserState] = useState<UserState>(() => {
     const saved = localStorage.getItem('tecnoBirrUser');
     if (saved) {
@@ -157,6 +161,11 @@ export default function App() {
     setUserState(prev => ({ ...prev, ...updates }));
   };
 
+  const handleLogout = () => {
+    setUserState(INITIAL_USER);
+    localStorage.removeItem('tecnoBirrUser');
+  };
+
   if (!userState.phone) {
     return <LoginView onLogin={handleLogin} />;
   }
@@ -164,17 +173,35 @@ export default function App() {
   return (
     <div className="h-[100dvh] bg-[#050505] text-slate-100 flex justify-center font-sans overflow-hidden">
       <div className="w-full max-w-md bg-[#050505] relative h-full border-x border-white/5 flex flex-col">
-        <TopBar />
+        <TopBar 
+          onLogout={handleLogout} 
+          onSettings={() => setIsSettingsOpen(true)}
+          onSupport={() => setIsSupportOpen(true)}
+        />
         
-        <main className="w-full flex-1 overflow-y-auto custom-scrollbar">
-          {currentTab === 'home' && <HomeView userState={userState} onChangeTab={setCurrentTab} />}
-          {currentTab === 'tasks' && <TasksView tasks={tasks} onCompleteTask={handleCompleteTask} />}
-          {currentTab === 'invite' && <InviteView userState={userState} />}
-          {currentTab === 'withdraw' && <WithdrawView userState={userState} onWithdraw={handleWithdraw} />}
-          {currentTab === 'profile' && <ProfileView userState={userState} onUpdateProfile={handleUpdateProfile} />}
+        <main className="w-full flex-1 overflow-hidden relative">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 overflow-y-auto custom-scrollbar"
+            >
+              {currentTab === 'home' && <HomeView userState={userState} onChangeTab={setCurrentTab} />}
+              {currentTab === 'tasks' && <TasksView tasks={tasks} onCompleteTask={handleCompleteTask} />}
+              {currentTab === 'invite' && <InviteView userState={userState} />}
+              {currentTab === 'withdraw' && <WithdrawView userState={userState} onWithdraw={handleWithdraw} />}
+              {currentTab === 'profile' && <ProfileView userState={userState} onUpdateProfile={handleUpdateProfile} />}
+            </motion.div>
+          </AnimatePresence>
         </main>
 
         <BottomNav currentTab={currentTab} onChangeTab={setCurrentTab} />
+
+        <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+        <SupportModal isOpen={isSupportOpen} onClose={() => setIsSupportOpen(false)} />
       </div>
     </div>
   );
