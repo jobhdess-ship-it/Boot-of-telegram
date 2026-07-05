@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import TelegramBot from "node-telegram-bot-api";
 import dotenv from "dotenv";
@@ -19,7 +20,7 @@ if (token) {
       const chatId = msg.chat.id;
       const refCode = match ? match[1].trim() : '';
       
-      const appUrl = process.env.APP_URL || "https://ais-pre-dzzvywm772ajvhzlpspbph-370307513775.us-east1.run.app";
+      const appUrl = process.env.APP_URL || "https://ais-dev-dzzvywm772ajvhzlpspbph-370307513775.us-east1.run.app/";
       
       const opts: TelegramBot.SendMessageOptions = {
         reply_markup: {
@@ -137,8 +138,23 @@ async function startServer() {
     }
   });
 
+  // Add demo route for web login without actual Telegram hash validation
+  app.post("/api/auth/telegram-demo", async (req, res) => {
+    try {
+      const { telegramId } = req.body;
+      if (!telegramId) return res.status(400).json({ error: "Missing ID" });
+      
+      const customToken = await adminAuth.createCustomToken(telegramId);
+      res.json({ customToken });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  const isProduction = process.env.NODE_ENV === "production" || fs.existsSync(path.join(process.cwd(), "dist", "index.html"));
+  
+  if (!isProduction) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

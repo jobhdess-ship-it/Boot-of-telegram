@@ -81,17 +81,39 @@ export function LoginView({ onLogin }: LoginViewProps) {
           <div className="bg-[#1c1c1e] border border-white/5 p-6 rounded-2xl text-center flex flex-col items-center gap-4">
             <Send className="w-10 h-10 text-[#2AABEE]" />
             <div>
-              <h3 className="font-bold text-white mb-1">Open in Telegram</h3>
-              <p className="text-sm text-slate-400">Please open this app inside Telegram using our official bot to securely log in and start earning.</p>
+              <h3 className="font-bold text-white mb-1">Telegram Login</h3>
+              <p className="text-sm text-slate-400">Please enter a demo user ID to log in (since web widget requires a linked domain).</p>
             </div>
-            <a 
-              href="https://t.me/obobirr_bot" 
-              target="_blank" 
-              rel="noreferrer"
+            <button 
+              onClick={() => {
+                // For demo/development purposes on the web
+                // We'll create a fake Telegram user initData to bypass
+                const fakeInitData = "query_id=demo&user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22Demo%22%2C%22last_name%22%3A%22User%22%2C%22username%22%3A%22demo_user%22%7D&auth_date=" + Math.floor(Date.now()/1000) + "&hash=DEMO_HASH";
+                
+                // In a real app, you would use the official Telegram Widget here, 
+                // but that requires setting up the exact domain in BotFather first.
+                setIsLoading(true);
+                fetch('/api/auth/telegram-demo', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ telegramId: "123456789" })
+                })
+                .then(res => res.json())
+                .then(async data => {
+                  const { signInWithCustomToken } = await import('firebase/auth');
+                  const userCredential = await signInWithCustomToken(auth, data.customToken);
+                  const token = await userCredential.user.getIdToken();
+                  onLogin(token);
+                })
+                .catch(err => {
+                  setError("Demo login failed");
+                  setIsLoading(false);
+                });
+              }}
               className="mt-2 bg-[#2AABEE] hover:bg-[#229ED9] text-white font-bold rounded-xl py-3 px-6 w-full transition-colors flex items-center justify-center gap-2"
             >
-              Open Bot
-            </a>
+              Simulate Web Login
+            </button>
           </div>
         )}
 
