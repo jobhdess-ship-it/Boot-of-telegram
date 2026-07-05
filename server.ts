@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import TelegramBot from "node-telegram-bot-api";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ if (token) {
       const chatId = msg.chat.id;
       const refCode = match ? match[1].trim() : '';
       
-      const appUrl = process.env.APP_URL || "https://t.me/obobirr_bot";
+      const appUrl = process.env.APP_URL || "https://ais-pre-dzzvywm772ajvhzlpspbph-370307513775.us-east1.run.app";
       
       const opts: TelegramBot.SendMessageOptions = {
         reply_markup: {
@@ -63,6 +64,77 @@ async function startServer() {
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok", bot_active: !!bot });
+  });
+
+  const { requireAuth } = await import("./src/middleware/auth.ts");
+  const { getOrCreateUser, getUser } = await import("./src/db/users.ts");
+  const { adminAuth } = await import("./src/lib/firebase-admin.ts");
+
+  app.post("/api/auth/telegram", async (req, res) => {
+    try {
+      const { initData } = req.body;
+      if (!initData) {
+        return res.status(400).json({ error: "Missing initData" });
+      }
+
+      const urlParams = new URLSearchParams(initData);
+      const hash = urlParams.get("hash");
+      if (!hash) {
+        return res.status(400).json({ error: "Missing hash in initData" });
+      }
+
+      urlParams.delete("hash");
+      const keys = Array.from(urlParams.keys()).sort();
+      const dataCheckString = keys.map((key) => `${key}=${urlParams.get(key)}`).join("\n");
+
+      const secretKey = crypto.createHmac("sha256", "WebAppData").update(token).digest();
+      const expectedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
+
+      if (expectedHash !== hash) {
+        return res.status(401).json({ error: "Invalid Telegram authentication" });
+      }
+
+      const userStr = urlParams.get("user");
+      if (!userStr) {
+        return res.status(400).json({ error: "Missing user data" });
+      }
+
+      const user = JSON.parse(userStr);
+      const telegramId = user.id.toString();
+      
+      // Create a custom Firebase token for this Telegram user
+      const customToken = await adminAuth.createCustomToken(telegramId);
+      
+      res.json({ customToken });
+    } catch (error: any) {
+      console.error("Telegram auth error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post("/api/users/sync", requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const dbUser = await getOrCreateUser(user.uid, user.email || '');
+      res.json(dbUser);
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/users/me", requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const dbUser = await getUser(user.uid);
+      if (!dbUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      res.json(dbUser);
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+    }
   });
 
   // Vite middleware for development

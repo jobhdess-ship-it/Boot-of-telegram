@@ -7,6 +7,7 @@ import { TasksView } from './views/TasksView';
 import { InviteView } from './views/InviteView';
 import { WithdrawView } from './views/WithdrawView';
 import { ProfileView } from './views/ProfileView';
+import { LoginView } from './views/LoginView';
 import { SettingsModal, SupportModal } from './components/Modals';
 import type { Tab, UserState, Task } from './types';
 
@@ -154,10 +155,42 @@ export default function App() {
     setUserState(prev => ({ ...prev, ...updates }));
   };
 
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  const handleLogin = async (token: string) => {
+    setAuthToken(token);
+    try {
+      const res = await fetch('/api/users/sync', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const dbUser = await res.json();
+        setUserState(prev => ({
+          ...prev,
+          phone: dbUser.phone || '',
+          balance: dbUser.balance,
+          tasksEarned: dbUser.tasksEarned,
+          referralEarned: dbUser.referralEarned,
+          pendingOut: dbUser.pendingOut,
+          totalInvites: dbUser.totalInvites,
+          qualifiedInvites: dbUser.qualifiedInvites
+        }));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleLogout = () => {
     setUserState(INITIAL_USER);
+    setAuthToken(null);
     localStorage.removeItem('oboBirrUser');
   };
+
+  if (!authToken) {
+    return <LoginView onLogin={handleLogin} />;
+  }
 
   return (
     <div className="h-[100dvh] bg-[#050505] text-slate-100 flex justify-center font-sans overflow-hidden">
