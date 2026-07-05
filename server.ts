@@ -16,6 +16,10 @@ if (token) {
   try {
     bot = new TelegramBot(token, { polling: true });
     
+    bot.on('polling_error', (error) => {
+      console.warn('Telegram polling error (ignored, another instance might be running):', error.message);
+    });
+    
     bot.onText(/\/start(.*)/, (msg, match) => {
       const chatId = msg.chat.id;
       const refCode = match ? match[1].trim() : '';
@@ -69,7 +73,6 @@ async function startServer() {
 
   const { requireAuth } = await import("./src/middleware/auth.ts");
   const { getOrCreateUser, getUser } = await import("./src/db/users.ts");
-  const { adminAuth } = await import("./src/lib/firebase-admin.ts");
 
   app.post("/api/auth/telegram", async (req, res) => {
     try {
@@ -103,10 +106,11 @@ async function startServer() {
       const user = JSON.parse(userStr);
       const telegramId = user.id.toString();
       
-      // Create a custom Firebase token for this Telegram user
-      const customToken = await adminAuth.createCustomToken(telegramId);
+      const jwt = await import("jsonwebtoken");
+      const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-for-development";
+      const token = jwt.default.sign({ uid: telegramId }, JWT_SECRET, { expiresIn: '30d' });
       
-      res.json({ customToken });
+      res.json({ token });
     } catch (error: any) {
       console.error("Telegram auth error:", error);
       res.status(500).json({ error: error.message });
@@ -144,8 +148,10 @@ async function startServer() {
       const { telegramId } = req.body;
       if (!telegramId) return res.status(400).json({ error: "Missing ID" });
       
-      const customToken = await adminAuth.createCustomToken(telegramId);
-      res.json({ customToken });
+      const jwt = await import("jsonwebtoken");
+      const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-for-development";
+      const token = jwt.default.sign({ uid: telegramId }, JWT_SECRET, { expiresIn: '30d' });
+      res.json({ token });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

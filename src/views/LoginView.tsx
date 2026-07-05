@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Send } from 'lucide-react';
 import { motion } from 'motion/react';
-import { auth } from '../lib/firebase';
-import { signInWithCustomToken } from 'firebase/auth';
 
 interface LoginViewProps {
   onLogin: (token: string) => void;
@@ -40,10 +38,7 @@ export function LoginView({ onLogin }: LoginViewProps) {
         throw new Error(data.error || 'Failed to authenticate with Telegram');
       }
 
-      // We have the Firebase custom token
-      const userCredential = await signInWithCustomToken(auth, data.customToken);
-      const token = await userCredential.user.getIdToken();
-      onLogin(token);
+      onLogin(data.token);
     } catch (err: any) {
       console.error("Telegram Login Error:", err);
       setError(err.message || 'Failed to sign in');
@@ -99,11 +94,13 @@ export function LoginView({ onLogin }: LoginViewProps) {
                   body: JSON.stringify({ telegramId: "123456789" })
                 })
                 .then(res => res.json())
-                .then(async data => {
-                  const { signInWithCustomToken } = await import('firebase/auth');
-                  const userCredential = await signInWithCustomToken(auth, data.customToken);
-                  const token = await userCredential.user.getIdToken();
-                  onLogin(token);
+                .then(data => {
+                  if (data.token) {
+                    onLogin(data.token);
+                  } else {
+                    setError("Demo login failed - no token");
+                    setIsLoading(false);
+                  }
                 })
                 .catch(err => {
                   setError("Demo login failed");

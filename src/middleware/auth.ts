@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { adminAuth } from '../lib/firebase-admin.ts';
-import { DecodedIdToken } from 'firebase-admin/auth';
+import jwt from 'jsonwebtoken';
 
 export interface AuthRequest extends Request {
-  user?: DecodedIdToken;
+  user?: any;
 }
 
 export const requireAuth = async (
@@ -18,11 +17,12 @@ export const requireAuth = async (
 
   const token = authHeader.split('Bearer ')[1];
   try {
-    const decodedToken = await adminAuth.verifyIdToken(token);
+    const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-for-development";
+    const decodedToken = jwt.verify(token, JWT_SECRET);
     req.user = decodedToken;
     next();
   } catch (error) {
-    console.error('Error verifying Firebase ID token:', error);
+    console.error('Error verifying JWT token:', error);
     return res.status(401).json({ error: 'Unauthorized: Invalid token' });
   }
 };
